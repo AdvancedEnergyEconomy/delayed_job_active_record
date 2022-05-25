@@ -131,7 +131,8 @@ module Delayed
           # use 'FOR UPDATE' and we would have many locking conflicts
           quoted_name = connection.quote_table_name(table_name)
           subquery    = ready_scope.limit(1).lock(true).select("id").to_sql
-          sql         = "UPDATE #{quoted_name} SET locked_at = ?, locked_by = ? WHERE id IN (#{subquery}) RETURNING *"
+          # see https://github.com/collectiveidea/delayed_job_active_record/pull/169
+          sql         = "UPDATE #{quoted_name} SET locked_at = ?, locked_by = ? WHERE id = (#{subquery}) RETURNING *"
           reserved    = find_by_sql([sql, now, worker.name])
           reserved[0]
         end
